@@ -1,0 +1,12 @@
+PI:
+  HOST: '192.168.0.4'
+  PORT: 5000
+  IR_PATH: './static/ir_img.png'
+  RGB_PATH: './static/rgb_img.png'
+  SERIAL_PORT: '/dev/spidev0.0'
+
+ANDROID:
+  HOST: '192.168.0.34'
+  PORT: 5000
+  PHONE_NUMBER: "+821083067118"
+  MESSAGE: "Fire Detection" # ['Fire Detection', 'Person Detection', ...]
