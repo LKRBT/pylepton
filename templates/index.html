@@ -11,15 +11,15 @@
             align-items: center;
             text-align: center;
         }
-        .images {
-            display: flex;
-            justify-content: space-around;
-            width: 100%;
+        .videos {
+	   display: flex;
+	   justify-content: space-around;
+	   width: 100%
         }
-        .images img {
-            width: 45%;
-            height: auto;
-        }
+	.videos img {
+	   width: 45%;
+	   height: auto;
+	}
         .text {
             margin-top: 20px;
         }
@@ -27,23 +27,14 @@
 </head>
 <body>
     <div class="container">
-        <div class="images">
-            <img id="rgb-image" src="{{ url_for('static', filename='rgb_img.png') }}" alt="Left Image">
-            <img id="ir-image" src="{{ url_for('static', filename='ir_img.png') }}" alt="Right Image">
+        <div class="videos">
+            <img src="{{ url_for('video_feed_rgb') }}" alt="RGB Video Stream">
+	    <img src="{{ url_for('video_feed_ir') }}" alt="IR Video Stream">
         </div>
         <div class="text">
             <p>Fire Detection.</p>
         </div>
     </div>
-    <script>
-        function updateImages() {
-            const rgbImage = document.getElementById('rgb-image');
-            const irImage = document.getElementById('ir-image');
-
-            rgbImage.src = `{{ url_for('static', filename='rgb_img.png') }}?t=` + new Date().getTime();
-            irImage.src = `{{ url_for('static', filename='ir_img.png') }}?t=` + new Date().getTime();
-        }
-        setInterval(updateImages, 1000);
-    </script>
 </body>
 </html>
+

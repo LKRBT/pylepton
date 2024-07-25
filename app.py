@@ -9,7 +9,7 @@ from get_cfg import get_cfg
 # from send_sms import send_sms
 from picamera2 import Picamera2
 from pylepton.Lepton3 import Lepton3
-from flask import Flask, render_template
+from flask import Flask, Response, render_template
 
 app = Flask(__name__)
 
@@ -20,8 +20,7 @@ def check_for_fire(data):
   temper = temper.reshape(120,160)
   for row in temper:
     print(str)
-    
-  
+
 def capture_ir(flip_v=False, device=None):
   with Lepton3(device) as l:
     a,_ = l.capture()
@@ -45,27 +44,32 @@ def generate_rgb_frames():
     picam2.start()
     while True:
         frame = capture_rgb(picam2)
-        cv2.imwrite(cfg['PI']['RGB_PATH'], frame)
-        time.sleep(1)
+        _, buffer = cv2.imencode('.jpg', frame)
+        frame = buffer.tobytes()
+        
+        yield (b'--frame\r\n'
+               b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
         
 def generate_ir_frames(flip_v=False, device=cfg['PI']['SERIAL_PORT']):
     while True:
         frame = capture_ir(flip_v=flip_v, device=device)
-        cv2.imwrite(cfg['PI']['IR_PATH'], frame)
-        time.sleep(1)
+        _, buffer = cv2.imencode('.png', frame)
+        frame = buffer.tobytes()
         
+        yield (b'--frame\r\n'
+               b'Content-Type: image/png\r\n\r\n' + frame + b'\r\n')
+
+@app.route('/video_feed_rgb')
+def video_feed_rgb():
+  return Response(generate_rgb_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
+
+@app.route('/video_feed_ir')
+def video_feed_ir():
+  return Response(generate_ir_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')    
+
 @app.route('/')
 def home(): 
   return render_template('index.html')
 
 if __name__ == '__main__':
-  ir_thr = threading.Thread(target=generate_ir_frames)
-  ir_thr.daemon = True
-  ir_thr.start()
-  
-
-  rgb_thr = threading.Thread(target=generate_rgb_frames)
-  rgb_thr.daemon = True
-  rgb_thr.start()
-   
   app.run(host=cfg['PI']['HOST'], port=cfg['PI']['PORT'])

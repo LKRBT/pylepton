@@ -1,8 +1,8 @@
 PI:
   HOST: '192.168.0.4'
   PORT: 5000
-  IR_PATH: './static/ir_img.png'
-  RGB_PATH: './static/rgb_img.png'
+  # IR_PATH: './static/ir_img.png'
+  # RGB_PATH: './static/rgb_img.png'
   SERIAL_PORT: '/dev/spidev0.0'
 
 ANDROID:
