@@ -44,6 +44,7 @@ def generate_rgb_frames():
     picam2.start()
     while True:
         frame = capture_rgb(picam2)
+        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         _, buffer = cv2.imencode('.jpg', frame)
         frame = buffer.tobytes()
         
@@ -53,6 +54,7 @@ def generate_rgb_frames():
 def generate_ir_frames(flip_v=False, device=cfg['PI']['SERIAL_PORT']):
     while True:
         frame = capture_ir(flip_v=flip_v, device=device)
+        frame = cv2.applyColorMap(frame, cv2.COLORMAP_PLASMA)
         _, buffer = cv2.imencode('.png', frame)
         frame = buffer.tobytes()
         
