@@ -37,6 +37,8 @@ def capture_ir(flip_v=False, device=None):
 
 def capture_rgb(picam2):
   frame = picam2.capture_array("main")
+  # frame = cv2.flip(frame, 0)
+  # frame = cv2.flip(frame, 1)
   
   return frame
 
