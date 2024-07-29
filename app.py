@@ -1,5 +1,4 @@
-#!/usr/bin/env python
-
+import sys
 import cv2
 import time
 import threading
@@ -9,63 +8,94 @@ from get_cfg import get_cfg
 # from send_sms import send_sms
 from picamera2 import Picamera2
 from pylepton.Lepton3 import Lepton3
-from flask import Flask, render_template
 
-app = Flask(__name__)
+from PyQt5.QtCore import Qt, QTimer
+from PyQt5.QtGui import QImage, QPixmap
+from PyQt5.QtWidgets import QApplication, QLabel, QVBoxLayout, QWidget, QHBoxLayout, QPushButton
 
 cfg = get_cfg()
 
-def check_for_fire(data):
-  temper = (data - 27315) / 100.0
-  temper = temper.reshape(120,160)
-  for row in temper:
-    print(str)
-    
-  
-def capture_ir(flip_v=False, device=None):
-  with Lepton3(device) as l:
-    a,_ = l.capture()
-    # check_for_fire(a)
-    
-  if flip_v:
-    cv2.flip(a,0,a)
-  
-  cv2.normalize(a, a, 0, 65535, cv2.NORM_MINMAX)
-  np.right_shift(a, 8, a)
-  
-  return np.uint8(a)
+class MainWindow(QWidget):
+    def __init__(self):
+        super().__init__()
 
-def capture_rgb(picam2):
-  frame = picam2.capture_array("main")
-  
-  return frame
+        self.initUI()
 
-def generate_rgb_frames():
-    picam2 = Picamera2()
-    picam2.start()
-    while True:
-        frame = capture_rgb(picam2)
-        cv2.imwrite(cfg['PI']['RGB_PATH'], frame)
-        time.sleep(1)
+    def initUI(self):
+        self.setWindowTitle('RGB and IR Frames')
+
+        self.rgb_label = QLabel(self)
+        self.ir_label = QLabel(self)
+		
+        self.start_button = QPushButton('Start Camera', self)
+        self.start_button.clicked.connect(self.start_cameras)
+
+        self.stop_button = QPushButton('Stop Camera', self)
+        self.stop_button.clicked.connect(self.stop_cameras)
         
-def generate_ir_frames(flip_v=False, device=cfg['PI']['SERIAL_PORT']):
-    while True:
-        frame = capture_ir(flip_v=flip_v, device=device)
-        cv2.imwrite(cfg['PI']['IR_PATH'], frame)
-        time.sleep(1)
-        
-@app.route('/')
-def home(): 
-  return render_template('index.html')
+        hbox = QHBoxLayout()
+        hbox.addWidget(self.rgb_label)
+        hbox.addWidget(self.ir_label)
 
+        vbox = QVBoxLayout()
+        vbox.addLayout(hbox)
+        vbox.addWidget(self.start_button)
+        vbox.addWidget(self.stop_button)
+        
+        self.setLayout(vbox)
+
+        self.rgb_timer = QTimer(self)
+        self.rgb_timer.timeout.connect(self.update_rgb_frame)
+       
+        self.ir_timer = QTimer(self)
+        self.ir_timer.timeout.connect(self.update_ir_frame)
+        
+        self.picam2 = Picamera2()
+    
+    def start_cameras(self):
+        self.picam2.start()
+        self.rgb_timer.start(0)  
+        self.ir_timer.start(0)  
+    
+    def stop_cameras(self):
+        self.rgb_timer.stop()
+        self.ir_timer.stop()
+        self.picam2.stop()
+        
+    def update_rgb_frame(self):
+        frame = self.capture_rgb()
+        rgb_image = QImage(frame, frame.shape[1], frame.shape[0], QImage.Format_BGR888)
+        self.rgb_label.setPixmap(QPixmap.fromImage(rgb_image))
+
+    def update_ir_frame(self):
+        frame = self.capture_ir()
+        ir_image = QImage(frame, frame.shape[1], frame.shape[0], QImage.Format_Grayscale8)
+        self.ir_label.setPixmap(QPixmap.fromImage(ir_image))
+
+    def capture_rgb(self):
+        frame = self.picam2.capture_array("main")
+        frame = cv2.flip(frame, 0)
+        frame = cv2.flip(frame, 1)
+        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        
+        return frame
+	
+    def capture_ir(self, flip_v=False, device=cfg['PI']['SERIAL_PORT']):
+        with Lepton3(device) as l:
+            a, _ = l.capture()
+
+        if flip_v:
+            cv2.flip(a, 0, a)
+
+        cv2.normalize(a, a, 0, 65535, cv2.NORM_MINMAX)
+        np.right_shift(a, 8, a)
+        new_width = a.shape[1] * 4
+        new_height = a.shape[0] * 4
+        a = cv2.resize(a, (new_width, new_height), interpolation=cv2.INTER_NEAREST)
+        return np.uint8(a)
+        
 if __name__ == '__main__':
-  ir_thr = threading.Thread(target=generate_ir_frames)
-  ir_thr.daemon = True
-  ir_thr.start()
-  
-
-  rgb_thr = threading.Thread(target=generate_rgb_frames)
-  rgb_thr.daemon = True
-  rgb_thr.start()
-   
-  app.run(host=cfg['PI']['HOST'], port=cfg['PI']['PORT'])
+    app = QApplication(sys.argv)
+    main_window = MainWindow()
+    main_window.show()
+    sys.exit(app.exec_())
