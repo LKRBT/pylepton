@@ -9,6 +9,7 @@ import numpy as np
 
 from get_cfg import get_cfg
 # from send_sms import send_sms
+
 from picamera2 import Picamera2
 from pylepton.Lepton3 import Lepton3
 
@@ -23,53 +24,57 @@ screen = pygame.display.set_mode((infoObject.current_w, infoObject.current_h), p
 clock = pygame.time.Clock()
 clock.tick(60)
 
-running = True
+rgb_frame = None 
+ir_frame = None
 
 def check_for_fire(data):
     temper = (data - 27315) / 100.0
     temper = temper.reshape(120, 160)
-    for row in temper:
-        print(str)
+    _, max_val, _, max_loc = cv2.minMaxLoc(temper)
+    #for row in temper:
+    #    print(str)
+    return "{:.2f}C".format(max_val), max_loc
     
-def capture_ir(flip_v=False, device=None):
+def capture_ir(device=None):
     with Lepton3(device) as l:
         a, _ = l.capture()
-        # check_for_fire(a)
-    
-    if flip_v:
-        cv2.flip(a, 0, a)
-    
+    val, loc = check_for_fire(a)
+        
     cv2.normalize(a, a, 0, 65535, cv2.NORM_MINMAX)
     np.right_shift(a, 8, a)
+    frame = np.uint8(a)
     
-    new_width = a.shape[1] * 4
-    new_height = a.shape[0] * 4
-    frame = cv2.resize(a, (int(size_w/2), size_h), interpolation=cv2.INTER_NEAREST)
-    frame = cv2.cvtColor(frame, cv2.COLOR_GRAY2RGB)
-    frame = np.uint8(frame)
+    origin_h, origin_w = frame.shape[:2]
+    
+    frame = cv2.resize(frame, (int(size_w/2), size_h), interpolation=cv2.INTER_NEAREST)
     frame = cv2.applyColorMap(frame, cv2.COLORMAP_PLASMA)
-    frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
+    frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+    
+    scale_w = int(loc[0] * size_w / 2 / origin_w)
+    scale_h = int(loc[1] * size_h / origin_h)
+    
+    cv2.line(frame, (scale_w - 20, scale_h), (scale_w + 20, scale_h), (255, 255, 255), 1)
+    cv2.line(frame, (scale_w, scale_h - 20), (scale_w, scale_h + 20), (255, 255, 255), 1)
+    cv2.circle(frame, (scale_w, scale_h), 5, (255, 255, 255), 1)
+    cv2.putText(frame, val, (scale_w + 20, scale_h + 20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
     
     return frame
 
 def capture_rgb(picam2):
     frame = picam2.capture_array("main")
-    frame = cv2.flip(frame, 0)
-    frame = cv2.flip(frame, 1)
-    frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-    frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
+    frame = cv2.flip(frame, -1)
+    frame = cv2.cvtColor(frame, cv2.COLOR_RGBA2RGB)
     frame = cv2.resize(frame, (int(size_w/2), size_h), interpolation=cv2.INTER_NEAREST)
     
     return frame
 
 def main_loop():
-    global running
+    running = True
     picam2 = Picamera2()
     picam2.start()
     while running:
         rgb = capture_rgb(picam2)
-        ir = capture_ir(flip_v=False, device=cfg['PI']['SERIAL_PORT'])
-        
+        ir = capture_ir(device=cfg['PI']['SERIAL_PORT'])
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
@@ -80,17 +85,17 @@ def main_loop():
                 print(event.button)
                 if event.button == 3:
                     running = False
-
+        
         rgb = pygame.surfarray.make_surface(rgb.swapaxes(0, 1))
         ir = pygame.surfarray.make_surface(ir.swapaxes(0, 1))
-
-        screen.fill((0, 0, 0))  # Clear the screen
+        
+        screen.fill((0, 0, 0))
         screen.blit(rgb, (0, 0))
         screen.blit(ir, (size_w/2, 0))
         pygame.display.flip()
         
         clock.tick(60)
-
+        
     pygame.quit()
     sys.exit()
 
