@@ -24,9 +24,6 @@ screen = pygame.display.set_mode((infoObject.current_w, infoObject.current_h), p
 clock = pygame.time.Clock()
 clock.tick(60)
 
-rgb_frame = None 
-ir_frame = None
-
 def check_for_fire(data):
     temper = (data - 27315) / 100.0
     temper = temper.reshape(120, 160)
