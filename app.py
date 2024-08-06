@@ -24,18 +24,20 @@ screen = pygame.display.set_mode((infoObject.current_w, infoObject.current_h), p
 clock = pygame.time.Clock()
 clock.tick(60)
 
-def check_for_fire(data):
+def check_for_fire(data, loc=None):
     temper = (data - 27315) / 100.0
     temper = temper.reshape(120, 160)
-    _, max_val, _, max_loc = cv2.minMaxLoc(temper)
-    #for row in temper:
-    #    print(str)
-    return "{:.2f}C".format(max_val), max_loc
     
-def capture_ir(device=None):
+    if loc is not None:
+        val = temper[loc[1], loc[0]]
+        return "{:.2f}C".format(val)
+    
+    return "{:.2f}C".format(0)
+    
+def capture_ir(device=None, loc=None):
     with Lepton3(device) as l:
         a, _ = l.capture()
-    val, loc = check_for_fire(a)
+    val = check_for_fire(a, loc)
         
     cv2.normalize(a, a, 0, 65535, cv2.NORM_MINMAX)
     np.right_shift(a, 8, a)
@@ -47,15 +49,16 @@ def capture_ir(device=None):
     frame = cv2.applyColorMap(frame, cv2.COLORMAP_PLASMA)
     frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
     
-    scale_w = int(loc[0] * size_w / 2 / origin_w)
-    scale_h = int(loc[1] * size_h / origin_h)
-    
-    cv2.line(frame, (scale_w - 20, scale_h), (scale_w - 5, scale_h), (255, 255, 255), 1)
-    cv2.line(frame, (scale_w + 5, scale_h), (scale_w + 20, scale_h), (255, 255, 255), 1)
-    cv2.line(frame, (scale_w, scale_h - 20), (scale_w, scale_h - 5), (255, 255, 255), 1)
-    cv2.line(frame, (scale_w, scale_h + 5), (scale_w, scale_h + 20), (255, 255, 255), 1)
-    cv2.circle(frame, (scale_w, scale_h), 5, (255, 255, 255), 1)
-    cv2.putText(frame, val, (scale_w + 20, scale_h + 20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
+    if loc is not None:
+        scale_w = int(loc[0] * (size_w / 2) / origin_w) 
+        scale_h = int(loc[1] * size_h / origin_h)
+        
+        cv2.line(frame, (scale_w - 20, scale_h), (scale_w - 5, scale_h), (255, 255, 255), 1)
+        cv2.line(frame, (scale_w + 5, scale_h), (scale_w + 20, scale_h), (255, 255, 255), 1)
+        cv2.line(frame, (scale_w, scale_h - 20), (scale_w, scale_h - 5), (255, 255, 255), 1)
+        cv2.line(frame, (scale_w, scale_h + 5), (scale_w, scale_h + 20), (255, 255, 255), 1)
+        cv2.circle(frame, (scale_w, scale_h), 5, (255, 255, 255), 1)
+        cv2.putText(frame, val, (scale_w + 20, scale_h + 20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
     
     return frame
 
@@ -73,7 +76,10 @@ def main_loop():
     picam2.start()
     while running:
         rgb = capture_rgb(picam2)
-        ir = capture_ir(device=cfg['PI']['SERIAL_PORT'])
+        mouse_x, mouse_y = pygame.mouse.get_pos()
+        mouse_x = int((mouse_x - size_w/2)* 160 / (size_w/2))
+        mouse_y = int(mouse_y * 120 / size_h)
+        ir = capture_ir(device=cfg['PI']['SERIAL_PORT'], loc=(mouse_x, mouse_y))
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
