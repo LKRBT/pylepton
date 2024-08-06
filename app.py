@@ -24,9 +24,6 @@ screen = pygame.display.set_mode((infoObject.current_w, infoObject.current_h), p
 clock = pygame.time.Clock()
 clock.tick(60)
 
-rgb_frame = None 
-ir_frame = None
-
 def check_for_fire(data):
     temper = (data - 27315) / 100.0
     temper = temper.reshape(120, 160)
@@ -53,8 +50,10 @@ def capture_ir(device=None):
     scale_w = int(loc[0] * size_w / 2 / origin_w)
     scale_h = int(loc[1] * size_h / origin_h)
     
-    cv2.line(frame, (scale_w - 20, scale_h), (scale_w + 20, scale_h), (255, 255, 255), 1)
-    cv2.line(frame, (scale_w, scale_h - 20), (scale_w, scale_h + 20), (255, 255, 255), 1)
+    cv2.line(frame, (scale_w - 20, scale_h), (scale_w - 5, scale_h), (255, 255, 255), 1)
+    cv2.line(frame, (scale_w + 5, scale_h), (scale_w + 20, scale_h), (255, 255, 255), 1)
+    cv2.line(frame, (scale_w, scale_h - 20), (scale_w, scale_h - 5), (255, 255, 255), 1)
+    cv2.line(frame, (scale_w, scale_h + 5), (scale_w, scale_h + 20), (255, 255, 255), 1)
     cv2.circle(frame, (scale_w, scale_h), 5, (255, 255, 255), 1)
     cv2.putText(frame, val, (scale_w + 20, scale_h + 20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
     
