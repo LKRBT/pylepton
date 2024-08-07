@@ -44,6 +44,8 @@ class CameraHandler:
     def capture_ir(self, device=None):
         with Lepton3(device) as l:
             a, _ = l.capture()
+	    a = cv2.flip(a, -1)
+		
         val, loc = self.check_for_fire(a)
         x, y = loc
 
@@ -63,7 +65,6 @@ class CameraHandler:
         
     def capture_rgb(self):
         frame = self.picam2.capture_array("main")
-        frame = cv2.flip(frame, -1)
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         
         return frame
