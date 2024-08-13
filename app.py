@@ -37,6 +37,8 @@ def check_for_fire(data, loc=None):
 def capture_ir(device=None, loc=None):
     with Lepton3(device) as l:
         a, _ = l.capture()
+        a = cv2.flip(a, -1)
+        
     val = check_for_fire(a, loc)
         
     cv2.normalize(a, a, 0, 65535, cv2.NORM_MINMAX)
@@ -64,7 +66,7 @@ def capture_ir(device=None, loc=None):
 
 def capture_rgb(picam2):
     frame = picam2.capture_array("main")
-    frame = cv2.flip(frame, -1)
+    # frame = cv2.flip(frame, -1)
     frame = cv2.cvtColor(frame, cv2.COLOR_RGBA2RGB)
     frame = cv2.resize(frame, (int(size_w/2), size_h), interpolation=cv2.INTER_NEAREST)
     
