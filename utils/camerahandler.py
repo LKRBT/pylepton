@@ -45,8 +45,6 @@ class CameraHandler:
         cv2.normalize(frame, frame, 0, 65535, cv2.NORM_MINMAX)
         np.right_shift(frame, 8, frame)
         frame = np.uint8(frame)
-        frame = cv2.applyColorMap(frame, cv2.COLORMAP_PLASMA)
-
         frame = cv2.resize(frame, (int(size_w/2), size_h), interpolation=cv2.INTER_NEAREST)
         frame = cv2.applyColorMap(frame, cv2.COLORMAP_PLASMA)
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
