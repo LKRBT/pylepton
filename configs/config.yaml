@@ -1,11 +1,2 @@
-ANDROID:
-  HOST: 192.168.0.34
-  MESSAGE: Fire Detection
-  PHONE_NUMBER: '+821083067118'
-  PORT: 5000
 PI:
-  HOST: 192.168.0.33
-  IR_PATH: /home/raspberry/pylepton/static/ir_img.png
-  PORT: 5000
-  RGB_PATH: /home/raspberry/pylepton/static/rgb_img.png
   SERIAL_PORT: /dev/spidev0.0
