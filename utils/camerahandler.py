@@ -41,7 +41,7 @@ class CameraHandler:
         return rgb, ir
     
     def process_ir(self, frame, loc=None):
-        # frame = cv2.flip(frame, -1)
+        frame = cv2.flip(frame, -1)
         
         val = self.check_for_fire(frame, loc)
         
@@ -68,7 +68,7 @@ class CameraHandler:
     def process_rgb(self, frame):
         frame = cv2.cvtColor(frame, cv2.COLOR_RGBA2RGB)
         frame = cv2.resize(frame, (int(size_w/2), size_h), interpolation=cv2.INTER_NEAREST)
-        frame = cv2.flip(frame, -1)
+        
         return frame
 
     def loop(self):
