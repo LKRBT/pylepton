@@ -80,5 +80,5 @@ class CameraHandler:
             self.ir_frame = self.process_ir(ir)
             self.rgb_frame = self.process_rgb(rgb)
             if self.fire_flag:
-                cv2.imwrite(self.cfg['PI']['RGB_PATH'], self.rgb_frame)
-                cv2.imwrite(self.cfg['PI']['IR_PATH'], self.ir_frame)
+                cv2.imwrite(self.cfg['PI']['FILE_PATH'] + 'rgb_img.png', self.rgb_frame)
+                cv2.imwrite(self.cfg['PI']['FILE_PATH'] + 'ir_img.png', self.ir_frame)
