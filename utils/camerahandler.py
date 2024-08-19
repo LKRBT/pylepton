@@ -94,8 +94,8 @@ class CameraHandler:
                         save_ir = cv2.cvtColor(view_ir, cv2.COLOR_RGB2BGR)
                         save_rgb = cv2.cvtColor(view_rgb, cv2.COLOR_RGB2BGR)
                         
-                        cv2.imwrite(self.cfg['PI']['IR_PATH'] + str(time.time()) + '.png', save_ir)
-                        cv2.imwrite(self.cfg['PI']['RGB_PATH'] + str(time.time()) + '.png', save_rgb) 
+                        cv2.imwrite(self.cfg['PI']['FILE_PATH'] + 'ir_' + str(time.time()) + '.png', save_ir)
+                        cv2.imwrite(self.cfg['PI']['FILE_PATH'] + 'rgb_' + str(time.time()) + '.png', save_rgb) 
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     print(event.button)
                     if event.button == 3:
