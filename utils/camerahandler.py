@@ -90,7 +90,7 @@ class CameraHandler:
                 if event.type == pygame.KEYDOWN:
                     if event.key == ord('q'):
                         running = False
-		    if event.key == ord('c'):
+                    if event.key == ord('c'):
                         save_ir = cv2.cvtColor(view_ir, cv2.COLOR_RGB2BGR)
                         save_rgb = cv2.cvtColor(view_rgb, cv2.COLOR_RGB2BGR)
                         
