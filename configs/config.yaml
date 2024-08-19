@@ -5,9 +5,8 @@ ANDROID:
   PORT: 5000
 PI:
   HOST: 192.168.1.11
-  IR_PATH: /home/raspberry/pylepton/utils/static/ir_img.png
+  FILE_PATH: /home/raspberry/pylepton/utils/static/
   PORT: 5000
-  RGB_PATH: /home/raspberry/pylepton/utils/static/rgb_img.png
   SERIAL_PORT: /dev/spidev0.0
 TWILIO:
   FROM_NUM: '+12513103845'
