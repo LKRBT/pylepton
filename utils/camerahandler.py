@@ -48,8 +48,8 @@ class CameraHandler:
         cv2.normalize(frame, frame, 0, 65535, cv2.NORM_MINMAX)
         np.right_shift(frame, 8, frame)
         frame = np.uint8(frame)
-        frame = cv2.resize(frame, (int(size_w/2), size_h), interpolation=cv2.INTER_NEAREST)
         frame = cv2.applyColorMap(frame, cv2.COLORMAP_PLASMA)
+        frame = cv2.resize(frame, (int(size_w/2), size_h), interpolation=cv2.INTER_NEAREST)
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
         if loc is not None:
@@ -66,9 +66,9 @@ class CameraHandler:
         return frame
 	
     def process_rgb(self, frame):
-        frame = cv2.cvtColor(frame, cv2.COLOR_RGBA2RGB)
         frame = cv2.resize(frame, (int(size_w/2), size_h), interpolation=cv2.INTER_NEAREST)
-        
+        frame = cv2.cvtColor(frame, cv2.COLOR_RGBA2RGB)
+
         return frame
 
     def loop(self):
@@ -81,8 +81,8 @@ class CameraHandler:
             mouse_x = int((mouse_x - size_w/2)* 160 / (size_w/2))
             mouse_y = int(mouse_y * 120 / size_h)
             
-            self.ir_frame = self.process_ir(ir, loc=(mouse_x, mouse_y))
-            self.rgb_frame = self.process_rgb(rgb)
+            view_ir = self.process_ir(ir, loc=(mouse_x, mouse_y))
+            view_rgb = self.process_rgb(rgb)
 
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -90,13 +90,19 @@ class CameraHandler:
                 if event.type == pygame.KEYDOWN:
                     if event.key == ord('q'):
                         running = False
+		    if event.key == ord('c'):
+                        save_ir = cv2.cvtColor(view_ir, cv2.COLOR_RGB2BGR)
+                        save_rgb = cv2.cvtColor(view_rgb, cv2.COLOR_RGB2BGR)
+                        
+                        cv2.imwrite(self.cfg['PI']['IR_PATH'] + str(time.time()) + '.png', save_ir)
+                        cv2.imwrite(self.cfg['PI']['RGB_PATH'] + str(time.time()) + '.png', save_rgb) 
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     print(event.button)
                     if event.button == 3:
                         running = False
 
-            rgb = pygame.surfarray.make_surface(self.rgb_frame.swapaxes(0, 1))
-            ir = pygame.surfarray.make_surface(self.ir_frame.swapaxes(0, 1))
+            rgb = pygame.surfarray.make_surface(view_rgb.swapaxes(0, 1))
+            ir = pygame.surfarray.make_surface(view_ir.swapaxes(0, 1))
 	
             screen.fill((0, 0, 0))
             screen.blit(rgb, (0, 0))
