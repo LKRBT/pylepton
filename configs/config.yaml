@@ -1,2 +1,4 @@
 PI:
   SERIAL_PORT: /dev/spidev0.0
+  IR_PATH: /home/raspberry/pylepton/utils/static/ir_
+  RGB_PATH: /home/raspberry/pylepton/utils/static/rgb_
