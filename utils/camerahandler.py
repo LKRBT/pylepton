@@ -27,7 +27,7 @@ class CameraHandler:
         temper = (data - 27315) / 100.0
         temper = temper.reshape(120, 160)
         _, max_val, _, max_loc = cv2.minMaxLoc(temper)
-        if max_val >= 60 and max_val < 100:
+        if max_val >= 60 and max_val < 140:
             if self.s_time is None:
                 self.s_time = time.time()
             elif time.time() - self.s_time >= 3:
