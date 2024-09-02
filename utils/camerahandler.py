@@ -22,7 +22,10 @@ class CameraHandler:
         self.fire_flag = False
         
         self.picam2 = Picamera2()
-
+        config = self.picam2.create_video_configuration(main={"size": (640, 480), "format": "RGB888"}, 
+                                                        controls={"FrameDurationLimits": (1000000 // 100, 1000000 // 100)})
+        self.picam2.configure(config)
+        
     def check_for_fire(self, data):
         temper = (data - 27315) / 100.0
         temper = temper.reshape(120, 160)
@@ -66,19 +69,14 @@ class CameraHandler:
         cv2.putText(frame, val, (x + 10, y + 10), cv2.FONT_HERSHEY_SIMPLEX, 0.2, (255, 255, 255), 1)
         
         return frame
-        
-    def process_rgb(self, frame):
-        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        
-        return frame
-        
+
     @thread_method
     def loop(self):
         self.picam2.start()
         while True:
             rgb, ir = self.capture()
             self.ir_frame = self.process_ir(ir)
-            self.rgb_frame = self.process_rgb(rgb)
+            self.rgb_frame = rgb
             if self.fire_flag:
                 cv2.imwrite(self.cfg['PI']['FILE_PATH'] + 'rgb_img.png', self.rgb_frame)
                 cv2.imwrite(self.cfg['PI']['FILE_PATH'] + 'ir_img.png', self.ir_frame)
